@@ -208,3 +208,4 @@ __marimo__/
 
 #Manual
 serviceAccountKey.json
+functions/venv/
