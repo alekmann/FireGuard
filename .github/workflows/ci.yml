@@ -26,6 +26,6 @@ jobs:
 
       - name: Run tests
         env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          DISABLE_FIREBASE: "true"
         run: |
           pytest
