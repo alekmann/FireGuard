@@ -4,3 +4,5 @@ uvicorn
 firebase-admin
 pytest
 python-dotenv
+functions-framework
+mangum
