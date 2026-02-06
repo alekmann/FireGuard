@@ -1,1 +1,6 @@
 pytest
+fastapi
+uvicorn
+firebase-admin
+pytest
+python-dotenv
