@@ -27,4 +27,4 @@ jobs:
           DISABLE_FIREBASE: "true"
           PYTHONPATH: functions
         run: |
-          pytest tests
+          pytest
