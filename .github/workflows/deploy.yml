@@ -14,24 +14,19 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+            node-version: 20
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+            python-version: "3.11"
 
-      - name: Create Python virtualenv (required by Firebase)
+      - name: Auth via Service Account
         run: |
-          cd functions
-          python3.11 -m venv venv
+            echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > sa.json
+            echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa.json" >> $GITHUB_ENV
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-
-      - name: Deploy Firebase Functions
-        run: firebase deploy --only functions
+      - name: Deploy
+        run: firebase deploy --only functions --project fireguard-2faea
