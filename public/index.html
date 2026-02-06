@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FireGuard - Fire Risk Assessment</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .card { 
+            background: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            margin: 20px 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .fire-emoji { font-size: 2em; }
+        .api-link { 
+            display: inline-block; 
+            padding: 10px 20px; 
+            background: #4285f4; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 4px;
+            margin: 5px;
+        }
+        .api-link:hover { background: #3367d6; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1><span class="fire-emoji">🔥</span> FireGuard</h1>
+        <p>Dynamic Fire Risk Assessment for Cloud Computing (ADA502)</p>
+        <p>This application computes fire risk based on weather data using the DYNAMIC fire risk indicator.</p>
+    </div>
+
+    <div class="card">
+        <h2>🚀 API Endpoints</h2>
+        <p>Test the following API endpoints:</p>
+        <a href="/api/fire-risk/health" class="api-link">Fire Risk Health Check</a>
+        <a href="/api/fire-risk/sample" class="api-link">Bergen Sample Data</a>
+        <a href="/api/docs" class="api-link">API Documentation</a>
+    </div>
+
+    <div class="card">
+        <h2>🏗️ Architecture</h2>
+        <ul>
+            <li><strong>Backend:</strong> FastAPI + Python 3.11</li>
+            <li><strong>Authentication:</strong> Firebase Auth</li>
+            <li><strong>Hosting:</strong> Firebase Hosting</li>
+            <li><strong>Fire Risk Model:</strong> DYNAMIC FRCM</li>
+        </ul>
+    </div>
+
+    <div class="card">
+        <h2>📊 Firebase Emulator UI</h2>
+        <p>Access the Firebase Emulator UI:</p>
+        <a href="http://localhost:4000" class="api-link" target="_blank">Emulator UI</a>
+        <a href="http://localhost:9099" class="api-link" target="_blank">Auth Emulator</a>
+    </div>
+</body>
+</html>

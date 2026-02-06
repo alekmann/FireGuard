@@ -1,0 +1,1 @@
+# Make fire_risk_computation a proper Python module

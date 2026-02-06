@@ -1,0 +1,22 @@
+[project]
+name = "frcm"
+version = "0.1.0"
+description = ""
+maintainers = [
+    { "name" = "Lars Michael Kristensen", "email" = "lmkr@users.noreply.github.com" },
+    { "name" = "Patrick Stünkel", "email" = "webminz@users.noreply.github.com" }
+]
+readme = "README.md"
+requires-python = ">= 3.13"
+dependencies = [
+    "pydantic >= 2.9",
+    "python-dateutil == 2.8.2",
+    "numpy >= 1.26.4"
+]
+
+[project.scripts]
+frcm = "frcm:console_main"
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
