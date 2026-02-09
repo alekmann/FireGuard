@@ -209,3 +209,16 @@ __marimo__/
 #Manual
 serviceAccountKey.json
 functions/venv/
+
+# Python
+__pycache__/
+*.pyc
+venv/
+
+# Firebase
+.firebase/
+firebase-debug.log
+
+# Secrets
+.env
+serviceAccountKey.json

@@ -1,4 +1,4 @@
-name: Deploy Firebase Functions
+name: Deploy Firebase Python Functions
 
 on:
   push:
@@ -10,31 +10,29 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 20
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-
-      - name: Auth via Service Account
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > sa.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa.json" >> $GITHUB_ENV
+          python-version: "3.10"
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
-      # 🔍 MIDLERIDIG DEBUG – behold til grønn deploy
-      - name: Debug functions dir
+      - name: Authenticate to Google Cloud
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          echo "=== ls functions ==="
-          ls -la functions
-          echo "=== requirements ==="
-          cat functions/requirements.txt
+          echo "$FIREBASE_SERVICE_ACCOUNT" > $HOME/firebase-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/firebase-key.json" >> $GITHUB_ENV
 
-      - name: Deploy
-        run: firebase deploy --only functions --project fireguard-2faea
+      - name: Install Python dependencies
+        run: |
+          cd functions
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Deploy Firebase Functions
+        run: firebase deploy --only functions --project fireguard-prod
