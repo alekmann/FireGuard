@@ -1,21 +1,8 @@
-from fastapi import FastAPI
-from contextlib import asynccontextmanager
-from dotenv import load_dotenv
-from app.firebase import init_firebase
-from app.api import router as api_router
+from firebase_functions import https_fn
+from firebase_admin import initialize_app
 
-load_dotenv()
+initialize_app()
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_firebase()
-    yield
-
-
-app = FastAPI(
-    title="FireGuard API",
-    lifespan=lifespan,
-)
-
-app.include_router(api_router)
+@https_fn.on_request()
+def hello_world(req):
+    return "OK"

@@ -1,40 +1,33 @@
-name: Deploy Firebase Functions
+name: Deploy Cloud Functions
 
 on:
   push:
     branches:
       - main
+    paths:
+      - 'functions/**' # Trigger only on changes within the functions directory
 
 jobs:
-  deploy:
+  build_and_deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: 20 # Use a current Node.js version
 
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+    - name: Install dependencies
+      run: cd functions && npm install
 
-      - name: Auth via Service Account
-        run: |
-          echo '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}' > sa.json
-          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/sa.json" >> $GITHUB_ENV
-
-      - name: Install Firebase CLI
-        run: npm install -g firebase-tools
-
-      # 🔍 MIDLERIDIG DEBUG – behold til grønn deploy
-      - name: Debug functions dir
-        run: |
-          echo "=== ls functions ==="
-          ls -la functions
-          echo "=== requirements ==="
-          cat functions/requirements.txt
-
-      - name: Deploy
-        run: firebase deploy --only functions --project fireguard-2faea
+    - name: Authenticate with Firebase using Service Account
+      uses: google-github-actions/auth@v1
+      with:
+        credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        
+    - name: Deploy Firebase Functions
+      run: npx firebase-tools deploy --only functions
+      # Ensure you have firebase-tools installed as a dev dependency or use npx

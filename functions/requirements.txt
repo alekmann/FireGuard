@@ -7,3 +7,4 @@ python-dotenv
 functions-framework
 mangum
 firebase-functions
+gunicorn

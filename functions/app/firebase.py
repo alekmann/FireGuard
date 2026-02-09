@@ -1,6 +1,5 @@
 import os
 import firebase_admin
-from firebase_admin import credentials
 
 
 def init_firebase():
@@ -10,23 +9,15 @@ def init_firebase():
     if firebase_admin._apps:
         return
 
-    # Emulator (lokalt)
+    # Emulator
     if os.getenv("FIREBASE_AUTH_EMULATOR_HOST"):
         firebase_admin.initialize_app()
         return
 
-    # Produksjon (Firebase Cloud Functions / Cloud Run)
-    # Bruker Application Default Credentials automatisk
-    if os.getenv("K_SERVICE"):
+    # Cloud Run / GitHub Actions / GCP
+    if os.getenv("GOOGLE_APPLICATION_CREDENTIALS") or os.getenv("K_SERVICE"):
         firebase_admin.initialize_app()
         return
 
-    # Lokalt / CI med service account
-    path = os.getenv("FIREBASE_SERVICE_ACCOUNT")
-    if not path:
-        raise RuntimeError(
-            "FIREBASE_SERVICE_ACCOUNT is required for local development"
-        )
+    raise RuntimeError("Firebase credentials not configured")
 
-    cred = credentials.Certificate(path)
-    firebase_admin.initialize_app(cred)
