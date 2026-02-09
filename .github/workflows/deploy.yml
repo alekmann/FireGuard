@@ -29,6 +29,10 @@ jobs:
           export GOOGLE_APPLICATION_CREDENTIALS="$HOME/firebase-key.json"
           gcloud auth activate-service-account --key-file="$HOME/firebase-key.json"
 
+      - name: Generate Firebase auth token
+        run: |
+          echo "FIREBASE_TOKEN=$(gcloud auth print-access-token)" >> $GITHUB_ENV
+
       - name: Install Python dependencies
         run: |
           cd functions
@@ -37,5 +41,5 @@ jobs:
 
       - name: Deploy to Firebase
         env:
-          GOOGLE_APPLICATION_CREDENTIALS: $HOME/firebase-key.json
+          FIREBASE_TOKEN: ${{ env.FIREBASE_TOKEN }}
         run: firebase deploy --only functions --non-interactive --project fireguard-prod
