@@ -1,0 +1,32 @@
+name: Deploy Firebase Functions
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-functions:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Firebase CLI
+        run: npm install -g firebase-tools
+
+      - name: Build venv and deploy
+        run: |
+          cd functions
+          python -m venv venv
+          source venv/bin/activate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          cd ..
+          firebase deploy --only functions --project fireguard-2faea --force
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
