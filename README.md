@@ -5,9 +5,22 @@
 
 ## Local setup
 
+Følg stegene under for å kjøre Firebase Functions lokalt.
+
+## 1. Gå inn i `functions`-mappen
+```bash
 cd functions
+```
+## 2. Opprett et virtuelt miljø
+```bash
 python -m venv venv
-source venv/Scripts/activate  # Windows
-pip install -r requirements.txt
+```
+## 3. Installer avhengigheter direkte i venv
+```bash
+./venv/Scripts/python -m pip install -r requirements.txt
+```
+## 4. Start Firebase-emulatoren
+```bash
 cd ..
 firebase emulators:start --only functions
+```
