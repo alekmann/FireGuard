@@ -12,7 +12,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: w9jds/firebase-action@v13.7.1
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create virtual environment
+        run: |
+          cd functions
+          python -m venv venv
+          source venv/bin/activate
+          pip install -r requirements.txt
+
+      - name: Deploy Functions
+        uses: w9jds/firebase-action@v13.7.1
         with:
           args: deploy --only functions --project fireguard-2faea
         env:
