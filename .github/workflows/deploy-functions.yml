@@ -27,6 +27,6 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
           cd ..
-          firebase deploy --only functions --project fireguard-2faea
+          firebase deploy --only functions --project fireguard-2faea --force
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}
