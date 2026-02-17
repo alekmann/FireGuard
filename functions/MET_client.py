@@ -46,11 +46,7 @@ def extract_weather_data(raw_json):
         "precipitation_next_hour": precip
     }
 
-raw_data = fetch_weather(60.3913, 5.3221)
-
-weather = extract_weather_data(raw_data)
-
-print(weather)
+#må kanskje skaleres opp senere
 
 
    
