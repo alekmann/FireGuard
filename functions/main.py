@@ -1,11 +1,14 @@
 # Welcome to Cloud Functions for Firebase for Python!
 # To get started, simply uncomment the below code or create your own.
 # Deploy with `firebase deploy`
+from __future__ import annotations
 
+from fastapi import Depends, FastAPI
+from firebase_admin import initialize_app
 from firebase_functions import https_fn
 from firebase_functions.options import set_global_options
-from firebase_admin import initialize_app
-from fastapi import FastAPI
+
+from app.security.api_keys import require_api_key
 from app.tools.asgi_adapter import AsgiToWsgi
 
 # For cost control, you can set the maximum number of containers that can be
@@ -23,6 +26,12 @@ app = FastAPI(title="FireGuard API")
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "fireguard"}
+
+# Protect endpoints by adding dependencies=[Depends(require_api_key)]
+@app.get("/weather", dependencies=[Depends(require_api_key)])
+async def weather(lat: float, lon: float) -> dict[str, float]:
+    # TODO: use your MET client logic here
+    return {"lat": lat, "lon": lon}
 
 
 wsgi_app = AsgiToWsgi(app)
