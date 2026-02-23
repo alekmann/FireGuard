@@ -1,23 +1,23 @@
 import pytest
 
 pytest.importorskip("frcm")
-pytest.importorskip("httpx")
+httpx = pytest.importorskip("httpx")
 
 from fastapi import FastAPI
-from fastapi.testclient import TestClient
 
 from app.api.fire_risk import router
 from app.services import fire_risk_service
 
 
 @pytest.fixture
-def client() -> TestClient:
+def app() -> FastAPI:
     app = FastAPI()
     app.include_router(router)
-    return TestClient(app)
+    return app
 
 
-def test_compute_endpoint_json_success(client: TestClient, monkeypatch):
+@pytest.mark.anyio
+async def test_compute_endpoint_json_success(app: FastAPI, monkeypatch):
     def fake_compute(weather_data):
         assert len(weather_data.data) == 1
         return {"ttf": 7.5, "risk": "moderate"}
@@ -33,21 +33,27 @@ def test_compute_endpoint_json_success(client: TestClient, monkeypatch):
         }
     ]
 
-    response = client.post("/fire-risk/compute", json=payload)
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post("/fire-risk/compute", json=payload)
 
     assert response.status_code == 200
     assert response.json()["ttf"] == 7.5
     assert response.json()["result"]["risk"] == "moderate"
 
 
-def test_compute_endpoint_rejects_invalid_payload(client: TestClient):
-    response = client.post("/fire-risk/compute", json={"foo": "bar"})
+@pytest.mark.anyio
+async def test_compute_endpoint_rejects_invalid_payload(app: FastAPI):
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post("/fire-risk/compute", json={"foo": "bar"})
 
     assert response.status_code == 400
     assert "JSON body must be a list" in response.json()["detail"]
 
 
-def test_compute_by_location_success(client: TestClient, monkeypatch):
+@pytest.mark.anyio
+async def test_compute_by_location_success(app: FastAPI, monkeypatch):
     def fake_fetch(lat: float, lon: float, max_points: int):
         assert lat == 60.3913
         assert lon == 5.3221
@@ -74,7 +80,9 @@ def test_compute_by_location_success(client: TestClient, monkeypatch):
     monkeypatch.setattr("app.api.fire_risk.fetch_weather_records_for_location", fake_fetch)
     monkeypatch.setattr(fire_risk_service, "compute", fake_compute)
 
-    response = client.get("/fire-risk/compute-by-location", params={"lat": 60.3913, "lon": 5.3221, "points": 2})
+    transport = httpx.ASGITransport(app=app)
+    async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/fire-risk/compute-by-location", params={"lat": 60.3913, "lon": 5.3221, "points": 2})
 
     assert response.status_code == 200
     assert response.json()["ttf"] == 9.1
