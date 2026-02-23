@@ -5,52 +5,66 @@ headers = {
 }
 
 
-def fetch_weather(lat, lon):
-    r = requests.get(f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}", headers=headers)
-    if r.status_code == 200:
-        data = r.json()
-        return data
-    else:
-        print(f"Error fetching weather data: {r.status_code}")
-        return None
+def fetch_weather(lat: float, lon: float) -> dict:
+    url = f"https://api.met.no/weatherapi/locationforecast/2.0/compact?lat={lat}&lon={lon}"
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+    except requests.RequestException as exc:
+        raise RuntimeError(f"Failed to fetch weather data from MET: {exc}") from exc
+    return response.json()
 
-def extract_timeseries(raw_json):
-    return raw_json['properties']['timeseries']
 
-def get_air_temperature(ts):
+def extract_timeseries(raw_json: dict) -> list[dict]:
+    try:
+        return raw_json["properties"]["timeseries"]
+    except (KeyError, TypeError) as exc:
+        raise ValueError("Unexpected MET response format") from exc
+
+
+def get_air_temperature(ts: dict) -> float:
     return ts["data"]["instant"]["details"]["air_temperature"]
 
-def get_wind_speed(ts):
+
+def get_wind_speed(ts: dict) -> float:
     return ts["data"]["instant"]["details"]["wind_speed"]
 
-def get_relative_humidity(ts):
+
+def get_relative_humidity(ts: dict) -> float:
     return ts["data"]["instant"]["details"]["relative_humidity"]
 
-def get_precipitation_next_hour(ts):
-    '''Returns the precipitation amount for the next hour in mm.'''
-    return ts["data"]["next_1_hours"]["details"]["precipitation_amount"]
 
-def extract_weather_data(raw_json):
-
-    ts0 = extract_timeseries(raw_json)[0]
-
-    temp = get_air_temperature(ts0)
-    wind = get_wind_speed(ts0)
-    hum = get_relative_humidity(ts0)
-    precip = get_precipitation_next_hour(ts0)
-
+def _to_record(ts: dict) -> dict:
     return {
-        "temperature": temp,
-        "wind_speed": wind,
-        "relative_humidity": hum,
-        "precipitation_next_hour": precip
+        "timestamp": ts["time"],
+        "temperature": float(get_air_temperature(ts)),
+        "wind_speed": float(get_wind_speed(ts)),
+        "relative_humidity": float(get_relative_humidity(ts)),
     }
 
-raw_data = fetch_weather(60.3913, 5.3221)
 
-weather = extract_weather_data(raw_data)
+def extract_weather_records(raw_json: dict, max_points: int = 12) -> list[dict]:
+    if max_points < 1:
+        raise ValueError("max_points must be >= 1")
 
-print(weather)
+    records: list[dict] = []
+    for ts in extract_timeseries(raw_json):
+        try:
+            records.append(_to_record(ts))
+        except (KeyError, TypeError, ValueError):
+            continue
+        if len(records) >= max_points:
+            break
+
+    if not records:
+        raise ValueError("No valid weather records found in MET response")
+
+    return records
 
 
-   
+def fetch_weather_records_for_location(lat: float, lon: float, max_points: int = 12) -> list[dict]:
+    raw_data = fetch_weather(lat=lat, lon=lon)
+    return extract_weather_records(raw_data, max_points=max_points)
+
+
+
