@@ -6,6 +6,7 @@ from firebase_functions import https_fn
 from firebase_functions.options import set_global_options
 from firebase_admin import initialize_app
 from fastapi import FastAPI
+from app.api.fire_risk import router as fire_risk_router
 from app.tools.asgi_adapter import AsgiToWsgi
 
 # For cost control, you can set the maximum number of containers that can be
@@ -18,6 +19,7 @@ set_global_options(max_instances=10)
 initialize_app()
 
 app = FastAPI(title="FireGuard API")
+app.include_router(fire_risk_router)
 
 
 @app.get("/health")
