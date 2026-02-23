@@ -7,9 +7,9 @@ from fastapi import Depends, FastAPI
 from firebase_admin import initialize_app
 from firebase_functions import https_fn
 from firebase_functions.options import set_global_options
-from firebase_admin import initialize_app
-from fastapi import FastAPI
+
 from app.api.fire_risk import router as fire_risk_router
+from app.security.api_keys import require_api_key
 from app.tools.asgi_adapter import AsgiToWsgi
 
 # For cost control, you can set the maximum number of containers that can be
@@ -18,26 +18,22 @@ from app.tools.asgi_adapter import AsgiToWsgi
 # limit. You can override the limit for each function using the max_instances
 # parameter in the decorator, e.g. @https_fn.on_request(max_instances=5).
 set_global_options(max_instances=10)
-
 initialize_app()
 
 app = FastAPI(title="FireGuard API")
-app.include_router(fire_risk_router)
 
-
+# Public
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok", "service": "fireguard"}
 
-# Protect endpoints by adding dependencies=[Depends(require_api_key)]
-@app.get("/weather", dependencies=[Depends(require_api_key)])
-async def weather(lat: float, lon: float) -> dict[str, float]:
-    # TODO: use your MET client logic here
-    return {"lat": lat, "lon": lon}
-
+# Protected routers
+app.include_router(
+    fire_risk_router,
+    dependencies=[Depends(require_api_key)],
+)
 
 wsgi_app = AsgiToWsgi(app)
-
 
 @https_fn.on_request()
 def api(req: https_fn.Request) -> https_fn.Response:
