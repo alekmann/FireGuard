@@ -54,6 +54,16 @@ async def test_compute_endpoint_rejects_invalid_payload(app: FastAPI):
 
 @pytest.mark.anyio
 async def test_compute_by_location_success(app: FastAPI, monkeypatch):
+    class FakeCache:
+        def get_cached_risk(self, lat, lon, points):
+            return None  # Simulerer alltid en "cache miss" i testen
+        
+        def save_to_cache(self, lat, lon, points, result):
+            pass  # Gjør ingenting når vi prøver å lagre
+
+    
+    monkeypatch.setattr("app.api.fire_risk.FireRiskCacheService", FakeCache) #la til denne
+
     def fake_fetch(lat: float, lon: float, max_points: int):
         assert lat == 60.3913
         assert lon == 5.3221
