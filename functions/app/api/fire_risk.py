@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from MET_client import fetch_weather_records_for_location
 from app.services.fire_risk_service import compute_fire_risk_from_csv, compute_fire_risk_from_records
+from app.services.fire_risk_cache_service import FireRiskCacheService
 
 router = APIRouter(prefix="/fire-risk", tags=["fire-risk"])
 
@@ -45,12 +46,20 @@ async def compute_fire_risk(request: Request) -> dict[str, Any]:
 
 @router.get("/compute-by-location")
 async def compute_fire_risk_by_location(lat: float, lon: float, points: int = 12) -> dict[str, Any]:
+    
     if points < 1 or points > 72:
         raise HTTPException(status_code=400, detail="points must be between 1 and 72")
 
+    cache = FireRiskCacheService()
+    cached_result = cache.get_cached_risk(lat, lon, points)
+    if cached_result is not None:
+        return cached_result
+    
     try:
         records = fetch_weather_records_for_location(lat=lat, lon=lon, max_points=points)
-        return compute_fire_risk_from_records(records)
+        result =  compute_fire_risk_from_records(records)
+        cache.save_to_cache(lat, lon, points, result)
+        return result
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
