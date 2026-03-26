@@ -3,12 +3,15 @@
 # Deploy with `firebase deploy`
 from __future__ import annotations
 
+import os
+
 from fastapi import Depends, FastAPI
 from firebase_admin import initialize_app
 from firebase_functions import https_fn
 from firebase_functions.options import set_global_options
 
 from app.api.fire_risk import router as fire_risk_router
+from app.api.messaging import router as messaging_router
 from app.security.api_keys import require_api_key
 from app.tools.asgi_adapter import AsgiToWsgi
 
@@ -20,7 +23,9 @@ from app.tools.asgi_adapter import AsgiToWsgi
 set_global_options(max_instances=10)
 initialize_app()
 
-app = FastAPI(title="FireGuard API")
+ROOT_PATH = "/fireguard-2faea/us-central1/api" if os.getenv("FUNCTIONS_EMULATOR") == "true" else ""
+
+app = FastAPI(title="FireGuard API", root_path=ROOT_PATH)
 
 # Public
 @app.get("/health")
@@ -30,6 +35,10 @@ async def health() -> dict[str, str]:
 # Protected routers
 app.include_router(
     fire_risk_router,
+    dependencies=[Depends(require_api_key)],
+)
+app.include_router(
+    messaging_router,
     dependencies=[Depends(require_api_key)],
 )
 
