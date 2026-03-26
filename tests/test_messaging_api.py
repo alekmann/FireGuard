@@ -36,7 +36,7 @@ async def test_publish_fire_risk_returns_message_details(app: FastAPI, monkeypat
     async with httpx.AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.post(
             "/messaging/publish-fire-risk",
-            json={"lat": 60.3913, "lon": 5.3221, "points": 3},
+            params={"lat": 60.3913, "lon": 5.3221, "points": 3},
         )
 
     assert response.status_code == 200
