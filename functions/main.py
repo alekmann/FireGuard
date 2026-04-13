@@ -23,7 +23,7 @@ from app.tools.asgi_adapter import AsgiToWsgi
 set_global_options(max_instances=10)
 initialize_app()
 
-ROOT_PATH = "/fireguard-2faea/us-central1/api" if os.getenv("FUNCTIONS_EMULATOR") == "true" else ""
+ROOT_PATH = "/fireguard-2faea/us-central1/api" if os.getenv("FUNCTIONS_EMULATOR") == "true" else "/api"
 
 app = FastAPI(title="FireGuard API", root_path=ROOT_PATH)
 
