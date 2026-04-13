@@ -7,11 +7,32 @@ from app.services.fire_risk_messaging_service import FireRiskMessagingService
 
 router = APIRouter(prefix="/messaging", tags=["messaging"])
 
-@router.post("/publish-fire-risk")
+
+PUBLISH_RESPONSE_EXAMPLE = {
+    "status": "published",
+    "topic": "fire-risk",
+    "message_id": "1713026600123456",
+    "lat": 60.3913,
+    "lon": 5.3221,
+    "points": 12,
+}
+
+@router.post(
+    "/publish-fire-risk",
+    summary="Publish fire risk message",
+    responses={
+        200: {
+            "description": "Message published",
+            "content": {"application/json": {"example": PUBLISH_RESPONSE_EXAMPLE}},
+        },
+        400: {"description": "Invalid query parameters"},
+        502: {"description": "Publishing failed"},
+    },
+)
 async def publish_fire_risk(
-    lat: float = Query(...),
-    lon: float = Query(...),
-    points: int = Query(default=12, ge=1, le=72),
+    lat: float = Query(..., description="Latitude", examples=[60.3913]),
+    lon: float = Query(..., description="Longitude", examples=[5.3221]),
+    points: int = Query(default=12, ge=1, le=72, description="Number of hourly points", examples=[12]),
 ) -> dict:
     try:
         service = FireRiskMessagingService()
