@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-from MET_client import fetch_weather_records_for_location
+from MET_client import fetch_weather_records_for_location, fetch_historical_weather
 from app.services.fire_risk_service import compute_fire_risk_from_csv, compute_fire_risk_from_records
 from app.services.fire_risk_cache_service import FireRiskCacheService
 
@@ -44,8 +44,8 @@ async def compute_fire_risk(request: Request) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
-@router.get("/compute-by-location")
-async def compute_fire_risk_by_location(lat: float, lon: float, points: int = 12) -> dict[str, Any]:
+@router.get("/compute-by-location-met")
+async def compute_fire_risk_by_location_met(lat: float, lon: float, points: int = 12) -> dict[str, Any]:
     
     if points < 1 or points > 72:
         raise HTTPException(status_code=400, detail="points must be between 1 and 72")
@@ -64,3 +64,23 @@ async def compute_fire_risk_by_location(lat: float, lon: float, points: int = 12
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+@router.get("/compute-by-location")
+async def compute_fire_risk_by_location(lat:float, lon:float) -> dict[str, Any]:
+    cache = FireRiskCacheService()
+    cached_result = cache.get_cached_risk(lat, lon, 800)
+    if cached_result is not None:
+        return cached_result
+    try:
+        records = fetch_historical_weather(lat,lon)
+        result = compute_fire_risk_from_records(records)
+        firerisks = result["result"]["firerisks"]
+        tff_liste = result["ttf"]
+        result["result"]["firerisks"] = firerisks[-72:]
+        result["ttf"] = tff_liste[-72:] #kan modifiseres for lenger tidsserier
+        cache.save_to_cache(lat, lon, 800, result)
+        return result # Returnerer siste 72 timer, som vil si alt som er focastet, og ikke initiell data som brukes for kalibrering
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
