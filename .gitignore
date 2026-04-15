@@ -221,4 +221,6 @@ firebase-debug.log
 
 # Secrets
 .env
-serviceAccountKey.json
+serviceAccountKey.js
+
+.secret.local
