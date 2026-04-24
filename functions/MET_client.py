@@ -1,4 +1,7 @@
 import requests
+#from firebase_functions import https_fn
+import os
+
 
 headers = {
     "User-Agent": "FireGuard/1.0.0 (598118@stud.hvl.no)"
@@ -66,5 +69,21 @@ def fetch_weather_records_for_location(lat: float, lon: float, max_points: int =
     raw_data = fetch_weather(lat=lat, lon=lon)
     return extract_weather_records(raw_data, max_points=max_points)
 
+#### Brukler open-Meteo for å hente ut værdata fra tidligere dager også ####
 
+
+def fetch_historical_weather(lat, lon):
+    url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&hourly=temperature_2m,relative_humidity_2m,wind_speed_10m&timezone=auto&past_days=5&forecast_days=3&wind_speed_unit=ms"
+    r = requests.get(url)
+    data = r.json()["hourly"]
+    
+    records = []
+    for i in range(len(data["time"])):
+        records.append({
+            "timestamp": data["time"][i],
+            "temperature": data["temperature_2m"][i],
+            "wind_speed": data["wind_speed_10m"][i],
+            "relative_humidity": data["relative_humidity_2m"][i]
+        })
+    return records
 

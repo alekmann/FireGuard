@@ -3,27 +3,97 @@
 ## Initial planned software architecture
 <img width="1136" height="737" alt="image" src="https://github.com/user-attachments/assets/00d6d53b-8a2d-4311-9e92-b797c3da58c1" />
 
+## Peer Review
+
+Peer review av dette prosjektet er ikke ment å kreve full lokal reproduksjon av produksjonsmiljøet. FireGuard bruker GCP-ressurser og rettigheter som ikke deles bredt, så peer review gjennomføres primært gjennom kodegjennomgang, lokale tester og kall mot den deployede API-en.
+
+### Forutsetninger
+
+For å gjennomføre peer review trenger revieweren:
+- tilgang til repoet
+- et lokalt Python-miljø for å lese kode og kjøre tester
+- en midlertidig `X-API-Key` fra prosjektgruppen for å teste beskyttede endepunkter
+
+### Swagger og API-dokumentasjon
+
+Den deployede API-en er tilgjengelig her:
+
+- Swagger UI: `https://us-central1-fireguard-2faea.cloudfunctions.net/api/docs`
+- ReDoc: `https://us-central1-fireguard-2faea.cloudfunctions.net/api/redoc`
+- OpenAPI JSON: `https://us-central1-fireguard-2faea.cloudfunctions.net/api/openapi.json`
+
+### Hva revieweren kan teste selv
+
+Revieweren kan lese dokumentasjonen i Swagger/ReDoc, kjøre testene lokalt og teste disse endepunktene i cloud:
+
+```bash
+curl "https://us-central1-fireguard-2faea.cloudfunctions.net/api/health"
+
+curl -i \
+  -H "X-API-Key: DIN_API_NOKKEL" \
+  "https://us-central1-fireguard-2faea.cloudfunctions.net/api/fire-risk/compute-by-location?lat=60.3913&lon=5.3221&points=12"
+
+curl -i -X POST \
+  -H "X-API-Key: DIN_API_NOKKEL" \
+  -d '' \
+  "https://us-central1-fireguard-2faea.cloudfunctions.net/api/messaging/publish-fire-risk?lat=60.3913&lon=5.3221&points=12"
+```
+
+### Pub/Sub-verifisering
+
+Hvis revieweren ønsker bekreftelse på at Pub/Sub-kallet faktisk fungerte, kan prosjektgruppen sende skjermbilde eller logg som viser publisert melding. Relevant oppsett:
+- topic: `fire-risk-updated`
+- subscription: `projects/fireguard-2faea/subscriptions/fire-risk-updated-sub`
+
+### Relevante filer å lese
+
+Ved kodegjennomgang er disse filene spesielt relevante:
+
+- `functions/main.py`
+- `functions/app/api/fire_risk.py`
+- `functions/app/api/messaging.py`
+- `functions/app/services/fire_risk_service.py`
+- `functions/app/services/fire_risk_messaging_service.py`
+- `functions/app/services/pubsub_publisher_service.py`
+- `tests/`
+
 ## Local setup
 
 Følg stegene under for å kjøre Firebase Functions lokalt.
 
-## 1. Gå inn i `functions`-mappen
+### 1. Gå inn i `functions`-mappen
 ```bash
 cd functions
 ```
-## 2. Opprett et virtuelt miljø
+### 2. Opprett et virtuelt miljø
 ```bash
 python -m venv venv
 ```
-## 3. Installer avhengigheter direkte i venv
+### 3. Installer avhengigheter direkte i venv
 ```bash
 ./venv/Scripts/python -m pip install -r requirements.txt
 ```
-## 4. Start Firebase-emulatoren
+### 4. Start Firebase-emulatoren
 ```bash
 cd ..
 firebase emulators:start --only functions
 ```
+
+Når Functions-emulatoren kjører, er base-URL normalt:
+
+```text
+http://127.0.0.1:5001/fireguard-2faea/us-central1/api
+```
+
+## Running tests
+
+Kjør testene med Python-interpreteren i `functions/venv`:
+
+```bash
+./functions/venv/Scripts/python -m pytest tests
+```
+
+Merk at flere tester bruker `pytest.importorskip("frcm")`. Hvis `frcm` ikke er installert i miljøet som brukes til testing, vil disse testene bli markert som `skipped`.
 
 ## Sikkerhet: API-nøkkel autentisering
 
