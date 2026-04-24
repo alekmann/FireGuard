@@ -3,6 +3,14 @@
 ## Initial planned software architecture
 <img width="1136" height="737" alt="image" src="https://github.com/user-attachments/assets/00d6d53b-8a2d-4311-9e92-b797c3da58c1" />
 
+## Current big-picture architecture
+
+Dette flytskjemaet gjenspeiler den nåværende implementasjonen i repoet.
+
+<img width="1672" height="941" alt="flowChartProject" src="https://github.com/user-attachments/assets/9351dfc5-7296-4b46-93d7-27659e8a8728" />
+
+I én setning: FireGuard er en FastAPI-backend driftet på Firebase Functions som validerer API-nøkler, henter værdata fra MET ved behov, beregner brannrisiko med frcm, lagrer cache og hendelseslogger i Firestore, og kan publisere brannrisikohendelser til Pub/Sub.
+
 ## Peer Review
 
 Peer review av dette prosjektet er ikke ment å kreve full lokal reproduksjon av produksjonsmiljøet. FireGuard bruker GCP-ressurser og rettigheter som ikke deles bredt, så peer review gjennomføres primært gjennom kodegjennomgang, lokale tester og kall mot den deployede API-en.
