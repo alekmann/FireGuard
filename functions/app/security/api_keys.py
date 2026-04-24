@@ -29,7 +29,14 @@ def _sha256_hex(value: str) -> str:
     return hashlib.sha256(value.encode("utf-8")).hexdigest()
 
 
-def require_api_key(x_api_key: Optional[str] = Header(default=None, alias=API_KEY_HEADER)) -> None:
+def require_api_key(
+    x_api_key: Optional[str] = Header(
+        default=None,
+        alias=API_KEY_HEADER,
+        description="API key required to access protected endpoints",
+        examples=["fg_live_example_key_12345"],
+    )
+) -> None:
     if not x_api_key:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
